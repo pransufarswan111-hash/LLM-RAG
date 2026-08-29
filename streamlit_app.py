@@ -2,7 +2,6 @@ import base64
 import os
 import shutil
 import textwrap
-import requests
 import streamlit as st
 
 from web_ingestion import WebIngestion
@@ -12,105 +11,15 @@ from vector_store import VectorStore
 from router import Router
 
 
+
 # ============================================================
 # PAGE CONFIGURATION
 # ============================================================
 
 st.set_page_config(
-    page_title="Prasuna | AI Assistant",
+    page_title="Prasuna |  AI Assistant",
     page_icon="✨",
     layout="centered"
-)
-
-
-# ============================================================
-# ONLINE VISITOR COUNTER
-# ============================================================
-
-def get_visitor_count():
-    try:
-        # Unique counter name for your app
-        url = (
-            "https://countapi.mileshilliard.com/"
-            "api/v1/hit/pransufarswan_prasuna_ai_visitors"
-        )
-
-        response = requests.get(
-            url,
-            timeout=5
-        )
-
-        if response.status_code == 200:
-            data = response.json()
-            return int(data.get("value", 0))
-
-    except Exception as e:
-        print("Visitor counter error:", e)
-
-    return 0
-
-
-# Count only once when a new Streamlit session starts
-if "visitor_count" not in st.session_state:
-    st.session_state.visitor_count = get_visitor_count()
-
-
-# ============================================================
-# VISITOR COUNTER UI
-# ============================================================
-
-st.markdown(
-    f"""
-    <div class="visitor-counter">
-        👁️ <span>{st.session_state.visitor_count:,}</span> Visitors
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-
-# ============================================================
-# VISITOR COUNTER CSS
-# ============================================================
-
-st.markdown(
-    """
-    <style>
-        .visitor-counter {
-            position: fixed;
-            /* Uses dynamic safe area for mobile status bars, falls back to 60px */
-            top: calc(60px + env(safe-area-inset-top, 0px));
-            right: 25px;
-            z-index: 999999;
-            padding: 8px 15px;
-            border-radius: 20px;
-            background: rgba(30, 30, 30, 0.78);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            color: var(--text-color);
-            font-size: 0.78rem;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-            white-space: nowrap;
-        }
-
-        .visitor-counter span {
-            font-weight: 800;
-        }
-
-        @media (max-width: 768px) {
-            .visitor-counter {
-                /* Gives extra space below Streamlit's mobile top bar */
-                top: calc(75px + env(safe-area-inset-top, 0px));
-                right: 12px;
-                font-size: 0.70rem;
-                padding: 6px 10px;
-            }
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
 )
 
 
@@ -119,47 +28,48 @@ st.markdown(
 # ============================================================
 
 def get_image_base64(file_path):
+
     if os.path.exists(file_path):
+
         ext = os.path.splitext(file_path)[1].lower()
+
         mime_map = {
             ".png": "image/png",
             ".jpg": "image/jpeg",
             ".jpeg": "image/jpeg",
             ".gif": "image/gif",
-            ".webp": "image/webp"
+            ".webp": "image/webp",
         }
+
         mime_type = mime_map.get(ext, "image/png")
-        
+
         with open(file_path, "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read()).decode()
-            
+
+            encoded_string = base64.b64encode(
+                image_file.read()
+            ).decode()
+
         return f"data:{mime_type};base64,{encoded_string}"
+
     return ""
 
+
+img_data = get_image_base64("picture1.png")
 
 # ============================================================
 # HERO HEADER
 # ============================================================
 
-img_data = get_image_base64("picture1.png")
-
-if img_data:
-    logo_html = f'<img src="{img_data}" class="header-icon" alt="Prasuna logo">'
-else:
-    # Optional fallback icon if picture1.png is missing or unreadable
-    logo_html = '<div class="header-icon-fallback">✨</div>'
-
 st.markdown(
     f"""
     <div class="hero-container">
-        {logo_html}
+        <img src="{img_data}" class="header-icon" alt="Prasuna logo">
         <div class="hero-title">Prasuna</div>
         <div class="hero-subtitle">Your AI Assistant</div>
     </div>
     """,
     unsafe_allow_html=True
 )
-
 
 # ============================================================
 # SIDEBAR PROFILE CARD
@@ -168,6 +78,7 @@ st.markdown(
 sidebar_img = get_image_base64("profile.png")
 
 with st.sidebar:
+
     sidebar_html = f"""
     <div class="sidebar-card">
         <div class="sidebar-photo-wrapper">
@@ -204,9 +115,9 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-
 # ============================================================
-# MAIN CSS
+# ============================================================
+# CSS
 # ============================================================
 
 st.markdown(
@@ -443,17 +354,17 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-
 # ============================================================
 # LOAD PIPELINE
 # ============================================================
 
 @st.cache_resource
 def load_pipeline():
+
     pipeline = WebIngestion()
 
     if os.path.exists("vector_db/index.faiss"):
+
         pipeline.vector_store.load()
 
     return pipeline
@@ -461,12 +372,16 @@ def load_pipeline():
 
 @st.cache_resource
 def load_llm():
+
     return LLM()
 
 
 pipeline = load_pipeline()
+
 llm = load_llm()
+
 prompt_builder = PromptBuilder()
+
 router = Router()
 
 
@@ -475,6 +390,7 @@ router = Router()
 # ============================================================
 
 if "messages" not in st.session_state:
+
     st.session_state.messages = []
 
 
@@ -482,13 +398,24 @@ if "messages" not in st.session_state:
 # CLEAR BUTTON
 # ============================================================
 
-if st.button("🗑️ Clear", type="secondary"):
+if st.button(
+    "🗑️ Clear",
+    type="secondary"
+):
+
     st.session_state.messages = []
 
     if os.path.exists("vector_db"):
-        shutil.rmtree("vector_db", ignore_errors=True)
 
-    pipeline.vector_store = VectorStore(dimension=768)
+        shutil.rmtree(
+            "vector_db",
+            ignore_errors=True
+        )
+
+    pipeline.vector_store = VectorStore(
+        dimension=768
+    )
+
     st.rerun()
 
 
@@ -497,15 +424,28 @@ if st.button("🗑️ Clear", type="secondary"):
 # ============================================================
 
 for msg in st.session_state.messages:
-    avatar = "👤" if msg["role"] == "user" else "✨"
-    st.chat_message(msg["role"], avatar=avatar).write(msg["content"])
+
+    avatar = (
+        "👤"
+        if msg["role"] == "user"
+        else "✨"
+    )
+
+    st.chat_message(
+        msg["role"],
+        avatar=avatar
+    ).write(
+        msg["content"]
+    )
 
 
 # ============================================================
 # CHAT INPUT
 # ============================================================
 
-question = st.chat_input("Glean...")
+question = st.chat_input(
+    "Ask anything..."
+)
 
 
 # ============================================================
@@ -513,41 +453,107 @@ question = st.chat_input("Glean...")
 # ============================================================
 
 if question:
-    # 1. SHOW USER QUESTION
-    st.chat_message("user", avatar="👤").write(question)
-    st.session_state.messages.append({"role": "user", "content": question})
 
+    # ========================================================
+    # 1. SHOW USER QUESTION
+    # ========================================================
+
+    st.chat_message(
+        "user",
+        avatar="👤"
+    ).write(question)
+
+
+    st.session_state.messages.append(
+        {
+            "role": "user",
+            "content": question
+        }
+    )
+
+
+    # ========================================================
     # 1b. BUILD CONVERSATION HISTORY FOR THE LLM
+    # ========================================================
+
     MAX_HISTORY_MESSAGES = 20  # last 10 user/assistant turns
 
     def build_contents(final_text):
+
+        # exclude the question we just appended above -
+        # it gets added back as the final turn below
         history = st.session_state.messages[:-1]
+
         history = history[-MAX_HISTORY_MESSAGES:]
+
         contents = []
 
         for msg in history:
-            role = "model" if msg["role"] == "assistant" else "user"
-            contents.append({
-                "role": role,
-                "parts": [{"text": msg["content"]}]
-            })
 
-        contents.append({
-            "role": "user",
-            "parts": [{"text": final_text}]
-        })
+            role = "model" if msg["role"] == "assistant" else "user"
+
+            contents.append(
+                {
+                    "role": role,
+                    "parts": [{"text": msg["content"]}]
+                }
+            )
+
+        contents.append(
+            {
+                "role": "user",
+                "parts": [{"text": final_text}]
+            }
+        )
 
         return contents
 
+
+
+    # ========================================================
     # 2. ASSISTANT RESPONSE AREA
-    with st.chat_message("assistant", avatar="✨"):
+    # ========================================================
+
+    with st.chat_message(
+        "assistant",
+        avatar="✨"
+    ):
+
         placeholder = st.empty()
-        placeholder.markdown("✨ Thinking...")
+
+
+        # ====================================================
+        # 3. THINKING
+        # ====================================================
+
+        placeholder.markdown(
+            "✨ Thinking..."
+        )
+
+
+        # ====================================================
+        # 3b. DECIDE WHETHER RETRIEVAL IS NEEDED
+        # ====================================================
 
         need_retrieval = router.should_search(question)
 
+
         if need_retrieval:
-            query_embedding = pipeline.embedder.create_embeddings([question])
+
+            # ====================================================
+            # 4. CREATE QUERY EMBEDDING
+            # ====================================================
+
+            query_embedding = (
+                pipeline.embedder.create_embeddings(
+                    [question]
+                )
+            )
+
+
+            # ====================================================
+            # 5. SEARCH EXISTING VECTOR STORE
+            # ====================================================
 
             chunks = pipeline.vector_store.search(
                 query_embedding[0],
@@ -556,14 +562,41 @@ if question:
                 debug=True
             )
 
+
+            # ====================================================
+            # 6. WEB SEARCH IF NOTHING RELEVANT
+            # ====================================================
+
             if not chunks:
-                placeholder.markdown("🌐 Reckoning...")
-                pipeline.ingest(question)
 
-                placeholder.markdown("🧠 Understanding information...")
-                query_embedding = pipeline.embedder.create_embeddings([question])
+                placeholder.markdown(
+                    "🌐 Searching the web..."
+                )
 
-                placeholder.markdown("🔍 Finding relevant answers...")
+                pipeline.ingest(
+                    question
+                )
+
+
+                placeholder.markdown(
+                    "🧠 Understanding information..."
+                )
+
+
+                # Re-create query embedding
+                query_embedding = (
+                    pipeline.embedder.create_embeddings(
+                        [question]
+                    )
+                )
+
+
+                placeholder.markdown(
+                    "🔍 Finding relevant answers..."
+                )
+
+
+                # Search newly created knowledge base
                 chunks = pipeline.vector_store.search(
                     query_embedding[0],
                     k=3,
@@ -571,71 +604,274 @@ if question:
                     debug=True
                 )
 
-            debug_results = pipeline.vector_store.search_debug(query_embedding[0], k=5)
+
+            # ====================================================
+            # 7. DEBUG SEARCH
+            # ====================================================
+
+            debug_results = (
+                pipeline.vector_store.search_debug(
+                    query_embedding[0],
+                    k=5
+                )
+            )
+
+
+            # ====================================================
+            # 8. FALLBACK TO BEST RETRIEVED RESULT
+            # ====================================================
 
             if not chunks and debug_results:
+
                 best_result = debug_results[0]
+
                 best_score = best_result["score"]
 
-                if best_score >= 0.60:
-                    chunks = [{
-                        "rank": best_result["rank"],
-                        "text": best_result["text"],
-                        "score": best_score
-                    }]
-                    print(f"[Fallback] Using Rank 1 score={best_score:.4f}")
 
-            with st.expander("🔎 Retrieved Content", expanded=False):
+                # Use Rank 1 if it is relevant
+                if best_score >= 0.60:
+
+                    chunks = [
+                        {
+                            "rank": best_result["rank"],
+                            "text": best_result["text"],
+                            "score": best_score
+                        }
+                    ]
+
+
+                    print(
+                        f"[Fallback] "
+                        f"Using Rank 1 "
+                        f"score={best_score:.4f}"
+                    )
+
+
+            # ====================================================
+            # 9. RETRIEVAL DEBUG PANEL
+            # ====================================================
+
+            with st.expander(
+                "🔎 Retrieved Content",
+                expanded=False
+            ):
+
                 if debug_results:
-                    st.caption(f"Showing top {len(debug_results)} retrieved chunks")
+
+                    st.caption(
+                        f"Showing top "
+                        f"{len(debug_results)} "
+                        f"retrieved chunks"
+                    )
+
 
                     for item in debug_results:
-                        score = item["score"]
-                        status = "✅ Relevant" if score >= 0.60 else "⚠️ Below threshold"
 
-                        st.markdown(f"### {status} — Rank {item['rank']}")
-                        st.caption(f"Similarity score: `{score:.4f}`")
-                        st.write(item["text"])
+                        score = item["score"]
+
+
+                        if score >= 0.60:
+
+                            status = (
+                                "✅ Relevant"
+                            )
+
+                        else:
+
+                            status = (
+                                "⚠️ Below threshold"
+                            )
+
+
+                        st.markdown(
+                            f"### {status} — "
+                            f"Rank {item['rank']}"
+                        )
+
+
+                        st.caption(
+                            f"Similarity score: "
+                            f"`{score:.4f}`"
+                        )
+
+
+                        st.write(
+                            item["text"]
+                        )
+
+
                         st.divider()
+
+
                 else:
-                    st.warning("No content was retrieved from the vector store.")
+
+                    st.warning(
+                        "No content was retrieved "
+                        "from the vector store."
+                    )
+
+
+            # ====================================================
+            # 10. BUILD CONTEXT
+            # ====================================================
 
             if chunks:
-                context = "\n\n".join(item["text"] for item in chunks)
-                prompt = prompt_builder.build_prompt(question, context)
+
+                context = "\n\n".join(
+                    item["text"]
+                    for item in chunks
+                )
+
+
+                # Optional terminal debugging
+                print(
+                    "\n========== FINAL CONTEXT =========="
+                )
+
+                print(
+                    context[:2000]
+                )
+
+                print(
+                    "===================================\n"
+                )
+
+
+                prompt = (
+                    prompt_builder.build_prompt(
+                        question,
+                        context
+                    )
+                )
+
             else:
+
                 prompt = None
 
+
+            # ====================================================
+            # 11. GENERATE ANSWER
+            # ====================================================
+
             if prompt:
+
                 full_answer = ""
-                for chunk in llm.stream(build_contents(prompt)):
-                    token = chunk.get("message", {}).get("content", "")
+
+
+                for chunk in llm.stream(
+                    build_contents(prompt)
+                ):
+
+                    token = (
+                        chunk
+                        .get("message", {})
+                        .get("content", "")
+                    )
+
+
                     full_answer += token
-                    placeholder.markdown(full_answer + "▌")
-                placeholder.markdown(full_answer)
+
+
+                    placeholder.markdown(
+                        full_answer + "▌"
+                    )
+
+
+                placeholder.markdown(
+                    full_answer
+                )
+
+
+            # ====================================================
+            # 12. FALLBACK TO GENERAL KNOWLEDGE
+            # ====================================================
+
             else:
-                placeholder.markdown("No matching web content found — answering from general knowledge...")
+
+                placeholder.markdown(
+                    "No matching web content found — answering from general knowledge..."
+                )
+
                 full_answer = ""
-                for chunk in llm.stream(build_contents(question)):
-                    token = chunk.get("message", {}).get("content", "")
+
+                for chunk in llm.stream(
+                    build_contents(question)
+                ):
+
+                    token = (
+                        chunk
+                        .get("message", {})
+                        .get("content", "")
+                    )
+
                     full_answer += token
-                    placeholder.markdown(full_answer + "▌")
-                placeholder.markdown(full_answer)
+
+                    placeholder.markdown(
+                        full_answer + "▌"
+                    )
+
+                placeholder.markdown(
+                    full_answer
+                )
 
         else:
-            placeholder.markdown("Mulling...")
+
+            placeholder.markdown(
+                "Answering directly..."
+            )
+
             full_answer = ""
-            for chunk in llm.stream(build_contents(question)):
-                token = chunk.get("message", {}).get("content", "")
+
+            for chunk in llm.stream(
+                build_contents(question)
+            ):
+
+                token = (
+                    chunk
+                    .get("message", {})
+                    .get("content", "")
+                )
+
                 full_answer += token
-                placeholder.markdown(full_answer + "▌")
-            placeholder.markdown(full_answer)
 
+                placeholder.markdown(
+                    full_answer + "▌"
+                )
+
+            placeholder.markdown(
+                full_answer
+            )
+
+
+
+
+
+    # ========================================================
     # 13. SAVE ASSISTANT RESPONSE
-    st.session_state.messages.append({"role": "assistant", "content": full_answer})
+    # ========================================================
 
+    st.session_state.messages.append(
+        {
+            "role": "assistant",
+            "content": full_answer
+        }
+    )
+
+
+    # ========================================================
     # 14. RESET TEMPORARY VECTOR STORE
-    if os.path.exists("vector_db"):
-        shutil.rmtree("vector_db", ignore_errors=True)
+    # ========================================================
 
-    pipeline.vector_store = VectorStore(dimension=768)
+    if os.path.exists(
+        "vector_db"
+    ):
+
+        shutil.rmtree(
+            "vector_db",
+            ignore_errors=True
+        )
+
+
+    pipeline.vector_store = VectorStore(
+        dimension=768
+    )
