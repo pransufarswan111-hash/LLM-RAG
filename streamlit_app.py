@@ -444,7 +444,7 @@ for msg in st.session_state.messages:
 # ============================================================
 
 question = st.chat_input(
-    "Ask anything..."
+    "Try me..."
 )
 
 
@@ -527,7 +527,7 @@ if question:
         # ====================================================
 
         placeholder.markdown(
-            "✨ Thinking..."
+            "✨ Brain Storming..."
         )
 
 
@@ -570,7 +570,7 @@ if question:
             if not chunks:
 
                 placeholder.markdown(
-                    "🌐 Searching the web..."
+                    "🌐 Mulling..."
                 )
 
                 pipeline.ingest(
@@ -817,7 +817,7 @@ if question:
         else:
 
             placeholder.markdown(
-                "Answering directly..."
+                " Tracking..."
             )
 
             full_answer = ""
