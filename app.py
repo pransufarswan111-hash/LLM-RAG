@@ -48,7 +48,7 @@ def main():
 
         print("\nCollecting information...\n")
 
-        for index, result in enumerate(results[:3], start=1):
+        for index, result in enumerate(results[:2], start=1):
 
             print(f"[{index}] Scraping: {result['url']}")
 
@@ -80,7 +80,7 @@ def main():
 
         print("\nSources Used:\n")
 
-        for result in results[:3]:
+        for result in results[:2]:
             print(result["title"])
             print(result["url"])
             print()

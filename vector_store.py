@@ -140,12 +140,11 @@ class VectorStore:
                 "\n============================================\n"
             )
 
-        # Return only chunks above threshold
-        return [
-            result
-            for result in results
-            if result["passed_threshold"]
-        ]
+        # Keep every retrieved chunk, ranked by similarity score.
+        # `passed_threshold` is left on each result purely as a label
+        # for display (e.g. a "Relevant" badge) -- it no longer removes
+        # anything from the returned list.
+        return results
 
     # ==========================================
     # DEBUG SEARCH

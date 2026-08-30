@@ -27,7 +27,7 @@ class WebIngestion:
     # ===================================
     # Process a single URL (instrumented)
     # ===================================
-    def process_url(self, result):
+    def process_url(self, result, query):
 
         url = result["url"]
         t0 = time.perf_counter()
@@ -46,7 +46,12 @@ class WebIngestion:
         t2 = time.perf_counter()
         chunks = self.chunker.split_into_chunks(clean_text)
         chunks = [chunk for chunk in chunks if len(chunk) > 100]
-        chunks = chunks[:8]
+
+        # Rank by relevance to the query instead of just keeping
+        # the first few chunks in page order (page order tends to
+        # surface intro/marketing text ahead of actual content).
+        chunks = self.chunker.rank_chunks(query, chunks, top_k=3)
+
         t_chunk = time.perf_counter() - t2
 
         print(
@@ -69,7 +74,7 @@ class WebIngestion:
 
         # ---- Search ----
         t0 = time.perf_counter()
-        results = self.search.search(query, max_results=8)
+        results = self.search.search(query, max_results=3)
         stage_times["search"] = time.perf_counter() - t0
         print(f"[TIMING] search: {stage_times['search']:.3f}s -> {len(results)} results")
 
@@ -84,7 +89,7 @@ class WebIngestion:
         t0 = time.perf_counter()
         with ThreadPoolExecutor(max_workers=max(3, len(results))) as executor:
             futures = [
-                executor.submit(self.process_url, result)
+                executor.submit(self.process_url, result, query)
                 for result in results
             ]
 

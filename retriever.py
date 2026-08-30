@@ -129,6 +129,46 @@ class Retriever:
         return dot / (mag1 * mag2)
 
     # -------------------------------
+    # Rank Already-Split Chunks
+    #
+    # Same TF-IDF scoring as retrieve(), but for a list of chunks
+    # that have already been split (avoids re-splitting text, and
+    # lets callers rank across chunks from multiple sources).
+    # -------------------------------
+    def rank_chunks(self, question, chunks, top_k=5):
+
+        if not chunks:
+            return []
+
+        documents = [self.tokenize(chunk) for chunk in chunks]
+
+        question_tokens = self.tokenize(question)
+
+        all_documents = documents + [question_tokens]
+
+        idf = self.compute_idf(all_documents)
+
+        question_tf = self.compute_tf(question_tokens)
+
+        question_vector = self.compute_vector(question_tf, idf)
+
+        scored_chunks = []
+
+        for chunk, tokens in zip(chunks, documents):
+
+            chunk_tf = self.compute_tf(tokens)
+
+            chunk_vector = self.compute_vector(chunk_tf, idf)
+
+            score = self.cosine_similarity(question_vector, chunk_vector)
+
+            scored_chunks.append((score, chunk))
+
+        scored_chunks.sort(key=lambda x: x[0], reverse=True)
+
+        return [chunk for score, chunk in scored_chunks[:top_k]]
+
+    # -------------------------------
     # Main Retrieval Function
     # -------------------------------
     def retrieve(self, question, text, top_k=5):
@@ -167,4 +207,3 @@ class Retriever:
         scored_chunks.sort(key=lambda x: x[0], reverse=True)
 
         return [chunk for score, chunk in scored_chunks[:top_k]]
-    
