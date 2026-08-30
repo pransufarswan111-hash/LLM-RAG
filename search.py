@@ -1,5 +1,5 @@
 import time
-from duckduckgo_search import DDGS
+from ddgs import DDGS, results
 
 
 class SearchEngine:
