@@ -704,31 +704,15 @@ if question:
 
         if prompt:
 
-            full_answer = ""
+            # placeholder is no longer needed for streaming --
+            # st.write_stream renders directly into the chat message.
+            placeholder.empty()
 
+            def token_generator():
+                for chunk in llm.stream(prompt):
+                    yield chunk.get("message", {}).get("content", "")
 
-            for chunk in llm.stream(
-                prompt
-            ):
-
-                token = (
-                    chunk
-                    .get("message", {})
-                    .get("content", "")
-                )
-
-
-                full_answer += token
-
-
-                placeholder.markdown(
-                    full_answer + "▌"
-                )
-
-
-            placeholder.markdown(
-                full_answer
-            )
+            full_answer = st.write_stream(token_generator())
 
 
         # ====================================================
